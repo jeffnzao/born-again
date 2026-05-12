@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-spiritual-950 text-spiritual-200 font-sans antialiased;
+  }
+
+  h1 {
+    @apply text-4xl font-bold;
+  }
+
+  h2 {
+    @apply text-3xl font-bold;
+  }
+
+  h3 {
+    @apply text-2xl font-bold;
+  }
+
+  h4 {
+    @apply text-xl font-bold;
+  }
+
+  h5 {
+    @apply text-lg font-bold;
+  }
+
+  h6 {
+    @apply text-base font-bold;
+  }
+
+  button {
+    @apply transition-colors duration-200;
+  }
+
+  input,
+  textarea,
+  select {
+    @apply transition-colors duration-200;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply bg-spiritual-600 hover:bg-spiritual-500 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-spiritual-800 hover:bg-spiritual-700 text-spiritual-300 px-4 py-2 rounded-lg transition-colors;
+  }
+
+  .btn-outline {
+    @apply border-2 border-spiritual-500 text-spiritual-400 hover:bg-spiritual-800/30 px-4 py-2 rounded-lg transition-colors;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-spiritual-800/40 border border-spiritual-500/50 rounded-xl p-6;
+  }
+
+  .card-elevated {
+    @apply bg-gradient-to-br from-spiritual-800/60 to-spiritual-900/40 border border-spiritual-500/50 rounded-xl p-6 shadow-spiritual;
+  }
+
+  /* Input */
+  .input-base {
+    @apply bg-spiritual-900/50 border-2 border-spiritual-500/30 rounded-lg px-4 py-2 text-spiritual-200 placeholder-spiritual-400/50 focus:outline-none focus:border-spiritual-400 focus:shadow-lg focus:shadow-spiritual-600/20 transition-colors;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .badge-success {
+    @apply bg-green-500/20 text-green-300 border border-green-500/30;
+  }
+
+  .badge-warning {
+    @apply bg-yellow-500/20 text-yellow-300 border border-yellow-500/30;
+  }
+
+  .badge-error {
+    @apply bg-red-500/20 text-red-300 border border-red-500/30;
+  }
+
+  .badge-info {
+    @apply bg-blue-500/20 text-blue-300 border border-blue-500/30;
+  }
+
+  /* Spiritual elements */
+  .spiritual-glow {
+    @apply shadow-spiritual;
+  }
+
+  .spiritual-border {
+    @apply border border-spiritual-500/50;
+  }
+
+  .spiritual-glass {
+    @apply bg-spiritual-950/40 backdrop-blur-md border border-spiritual-500/20;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(141, 67, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(141, 67, 255, 0.5);
+}
