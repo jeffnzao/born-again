@@ -1,32 +1,61 @@
-# 🙏 Nouvelle Création - Application Spirituelle Complète
+# Nouvelle Création - Monorepo Architecture
 
-Une application web et desktop Electron complète et immersive dédiée au combat spirituel, à la pureté, et à la croissance spirituelle biblique.
+## Structure
 
-## 📋 Modules Inclus
+```
+nouvelle-creation/
+├── apps/
+│   ├── web/          # Next.js web app (Vercel)
+│   └── desktop/      # Electron desktop app
+├── package.json      # Root workspace
+└── README.md
+```
 
-### 1. **🏠 Accueil**
-- Verset du jour avec méditation
-- Compteur de jours de pureté
-- Paliers et jalons atteints
-- Navigation rapide vers tous les modules
+## Development
 
-### 2. **⚔️ Combat Spirituel**
-- Bouton d'urgence pour les tentations
-- Versets de combat et de force
-- Animation de respiration guidée (4-4-4)
-- Compteur de victoire avec visualisation de paliers
+### Web App
+```bash
+npm run dev:web
+```
 
-### 3. **📖 Bible Thématique**
-- 6 thèmes bibliques complets
-- Pureté, Combat, Grâce, Identité, Prière, Discipline
-- Recherche et filtrage par thème
-- Dizaines de versets bibliques
+### Desktop App
+```bash
+npm run dev:desktop
+```
 
-### 4. **✍️ Journal Spirituel**
-- Entrées avec humeur spirituelle (Joyeux, Paisible, Lutte, Victoire)
-- Sauvegarde et historique persistant
-- Suppression d'entrées
-- Interface méditative
+## Build
+
+### Web Build (Vercel)
+```bash
+npm run build:web
+```
+
+### Desktop Build (Windows EXE)
+```bash
+npm run build:desktop
+```
+
+## Environment Variables
+
+### apps/web/.env.local
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+```
+
+## Deployment
+
+### Vercel (Web)
+- Auto-deploys from `apps/web`
+- Vercel config: `.vercelignore` excludes desktop files
+
+### Windows (Desktop)
+- Build: `npm run build:desktop`
+- Output: `apps/desktop/release/*.exe`
 
 ### 5. **📊 Tableau de Bord**
 - Statistiques de pureté, prière, lecture biblique

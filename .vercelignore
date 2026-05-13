@@ -1,0 +1,8 @@
+apps/desktop
+electron
+dist-electron
+release
+*.exe
+node_modules
+.env.local
+.env.*.local
