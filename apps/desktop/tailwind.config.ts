@@ -29,6 +29,7 @@ const config: Config = {
       animation: {
         'breath': 'breath 4s ease-in-out infinite',
         'glow': 'glow 3s ease-in-out infinite',
+        'fade-in': 'fade-in 0.6s ease-in-out',
       },
       keyframes: {
         breath: {
@@ -38,6 +39,10 @@ const config: Config = {
         glow: {
           '0%, 100%': { boxShadow: '0 0 20px rgba(249, 115, 22, 0.2)' },
           '50%': { boxShadow: '0 0 40px rgba(249, 115, 22, 0.4)' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
     },

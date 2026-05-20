@@ -1,0 +1,220 @@
+{
+  "program": {
+    "title": "Programme de Transformation Spirituelle - 8 Semaines",
+    "weeks": [
+      {
+        "week": 1,
+        "title": "Le Pardon et la Purification",
+        "theme": "Repentance et Restauration",
+        "focus": "Réconciliation avec Dieu et autrui",
+        "days": [
+          {
+            "day": 1,
+            "title": "Le chemin du Pardon",
+            "verses": ["1 John 1:9", "2 Cor 5:17", "Ps 32:1"],
+            "prayer": "Seigneur, je confesse mes péchés. Pardonne-moi et purifie mon cœur.",
+            "meditation": "La confession honnête ouvre le chemin à la restauration divine.",
+            "goals": ["Identifier un péché à confesser", "Pardonner à quelqu'un"],
+            "tasks": ["Lire les versets", "Prier 10 min", "Écrire au journal"]
+          },
+          {
+            "day": 2,
+            "title": "La Purification",
+            "verses": ["Ps 51:10", "Isa 1:18", "Titus 2:14"],
+            "prayer": "Purifie-moi de mes péchés et renouvelle mon esprit.",
+            "meditation": "Dieu nous fait devenir aussi blanc que la neige par son pardon.",
+            "goals": ["Demander le pardon à quelqu'un", "Accepter le pardon de Dieu"],
+            "tasks": ["Méditer sur la pureté", "Journaliser les sentiments"]
+          },
+          {
+            "day": 3,
+            "title": "La Grâce Suffisante",
+            "verses": ["2 Cor 12:9", "Rom 3:24", "Eph 1:7"],
+            "prayer": "Remplis-moi de ta grâce et de ta force.",
+            "meditation": "La grâce de Dieu est suffisante pour toute faiblesse.",
+            "goals": ["Expérimenter la grâce", "Pardonner à soi-même"],
+            "tasks": ["Prière d'action de grâce", "Méditation guidée"]
+          },
+          {
+            "day": 4,
+            "title": "La Restauration",
+            "verses": ["Ps 23", "Jer 31:3", "Lam 3:22"],
+            "prayer": "Restaure en moi la joie de ton salut.",
+            "meditation": "Dieu nous restaure complètement et nous aime d'un amour éternel.",
+            "goals": ["Restaurer une relation", "Retrouver la paix"],
+            "tasks": ["Pardonner complètement", "Célébrer la restauration"]
+          },
+          {
+            "day": 5,
+            "title": "La Transformation Commence",
+            "verses": ["2 Cor 5:17", "Rom 12:2", "Gal 2:20"],
+            "prayer": "Transforme-moi par le renouvellement de mon esprit.",
+            "meditation": "En Christ, nous sommes une création nouvelle.",
+            "goals": ["Accepter la transformation", "Planifier le changement"],
+            "tasks": ["Engager un changement", "Prière de consécration"]
+          },
+          {
+            "day": 6,
+            "title": "Nouvelle Identité",
+            "verses": ["Eph 4:25", "Col 3:12", "1 Pet 1:15"],
+            "prayer": "Aide-moi à vivre selon ma nouvelle identité en toi.",
+            "meditation": "Je suis une création nouvelle avec une identité restaurée.",
+            "goals": ["Affirmer sa nouvelle identité", "Rejeter l'ancienne nature"],
+            "tasks": ["Écrire sa nouvelle identité", "Méditation d'affirmation"]
+          },
+          {
+            "day": 7,
+            "title": "Semaine 1 - Résumé",
+            "verses": ["1 John 3:2", "2 Pet 3:18", "Phil 1:6"],
+            "prayer": "Merci pour la transformation commencée en moi.",
+            "meditation": "Dieu complètera l'œuvre bonne qu'il a commencée.",
+            "goals": ["Réfléchir sur la semaine", "Célébrer la victoire"],
+            "tasks": ["Revue hebdomadaire", "Action de grâces"]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "title": "La Sanctification et la Discipline",
+        "theme": "Croissance et Développement",
+        "focus": "Établir des habitudes spirituelles saines",
+        "days": [
+          {
+            "day": 8,
+            "title": "La Sainteté Appelée",
+            "verses": ["1 Pet 1:15-16", "Lev 19:2", "1 Thes 4:7"],
+            "prayer": "Appelle-moi à la sainteté et aide-moi à y répondre.",
+            "meditation": "Dieu nous appelle à vivre une vie sainte et séparée.",
+            "goals": ["Comprendre l'appel à la sainteté", "S'engager à la croissance"],
+            "tasks": ["Étudier la sainteté", "Prière de consécration"]
+          },
+          {
+            "day": 9,
+            "title": "La Discipline Spirituelle",
+            "verses": ["1 Tim 4:7-8", "Heb 12:11", "2 Tim 2:22"],
+            "prayer": "Donne-moi la discipline et la persévérance.",
+            "meditation": "La discipline spirituelle produit le fruit de la justice.",
+            "goals": ["Établir une discipline quotidienne", "Créer des habitudes"],
+            "tasks": ["Planifier les pratiques", "Méditation quotidienne"]
+          },
+          {
+            "day": 10,
+            "title": "La Prière Constante",
+            "verses": ["1 Thes 5:17", "Phil 4:6", "Matt 26:41"],
+            "prayer": "Apprends-moi à prier sans cesse.",
+            "meditation": "La prière constante nous maintient connectés à Dieu.",
+            "goals": ["Prier régulièrement", "Approfondir sa vie de prière"],
+            "tasks": ["Session de prière prolongée", "Journal de prière"]
+          },
+          {
+            "day": 11,
+            "title": "L'Étude de la Parole",
+            "verses": ["2 Tim 2:15", "Ps 119:105", "Deut 6:6"],
+            "prayer": "Ouvre mes yeux pour voir les merveilles de ta loi.",
+            "meditation": "L'étude régulière de la Parole nous fortifie.",
+            "goals": ["Étudier régulièrement", "Mémoriser les versets"],
+            "tasks": ["Étude biblique approfondie", "Mémorisation"]
+          },
+          {
+            "day": 12,
+            "title": "La Jeûne Spirituel",
+            "verses": ["Isa 58:6", "Matt 6:16-18", "Luc 5:35"],
+            "prayer": "Accepte mon jeûne comme expression de dépendance envers toi.",
+            "meditation": "Le jeûne spirituel affaiblit la chair et fortifie l'esprit.",
+            "goals": ["Pratiquer le jeûne", "Expérimenter la clarté spirituelle"],
+            "tasks": ["Jeûne d'une journée", "Prière intensifiée"]
+          },
+          {
+            "day": 13,
+            "title": "La Communion avec Dieu",
+            "verses": ["Phil 3:10", "1 John 1:3", "2 Cor 13:14"],
+            "prayer": "Accorde-moi une communion profonde avec toi.",
+            "meditation": "Nous entrons en communion avec Dieu par l'Esprit Saint.",
+            "goals": ["Approfondir la relation avec Dieu", "Expérimenter sa présence"],
+            "tasks": ["Temps de silence", "Méditation contemplative"]
+          },
+          {
+            "day": 14,
+            "title": "Semaine 2 - Résumé",
+            "verses": ["2 Pet 1:5-8", "Col 1:10", "Rom 15:13"],
+            "prayer": "Merci pour la croissance dans ma discipline spirituelle.",
+            "meditation": "La croissance spirituelle continue est la marque du disciple.",
+            "goals": ["Évaluer la croissance", "Planifier les prochaines étapes"],
+            "tasks": ["Réflexion hebdomadaire", "Planification"]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "title": "Le Saint-Esprit et le Pouvoir",
+        "theme": "Empowerment Divin",
+        "focus": "Expérimenter la puissance du Saint-Esprit",
+        "days": [
+          {
+            "day": 15,
+            "title": "L'Habitation du Saint-Esprit",
+            "verses": ["1 Cor 3:16", "Rom 8:9", "John 14:17"],
+            "prayer": "Remplis-moi de ton Saint-Esprit.",
+            "meditation": "L'Esprit Saint habite en nous comme sceau de l'adoption.",
+            "goals": ["Reconnaître la présence du Saint-Esprit", "Lui faire confiance"],
+            "tasks": ["Prière de remplissement", "Méditation sur la présence"]
+          },
+          {
+            "day": 16,
+            "title": "La Puissance pour Vaincre",
+            "verses": ["Rom 8:37", "1 John 4:4", "2 Tim 1:7"],
+            "prayer": "Donne-moi la puissance de vaincre la tentation.",
+            "meditation": "Par le Saint-Esprit, nous avons la victoire assurée.",
+            "goals": ["Accepter la puissance offerte", "Vaincre une tentation"],
+            "tasks": ["Combat spirituel", "Prière de victoire"]
+          },
+          {
+            "day": 17,
+            "title": "Les Fruits de l'Esprit",
+            "verses": ["Gal 5:22-23", "Eph 5:9", "2 Pet 1:5-8"],
+            "prayer": "Produis tes fruits dans ma vie.",
+            "meditation": "L'Esprit produit l'amour, la joie, la paix en nous.",
+            "goals": ["Cultiver les fruits de l'Esprit", "Montrer l'amour"],
+            "tasks": ["Acte de service", "Partage de l'amour"]
+          },
+          {
+            "day": 18,
+            "title": "Les Dons Spirituels",
+            "verses": ["1 Cor 12:4-11", "Rom 12:6-8", "1 Pet 4:10"],
+            "prayer": "Découvre et utilise mes dons spirituels.",
+            "meditation": "Dieu nous donne des dons pour servir et édifier le corps du Christ.",
+            "goals": ["Identifier ses dons", "Les utiliser au service"],
+            "tasks": ["Découvrir ses dons", "Service communautaire"]
+          },
+          {
+            "day": 19,
+            "title": "La Guidance de l'Esprit",
+            "verses": ["Rom 8:14", "John 16:13", "Ps 37:23"],
+            "prayer": "Guide-moi par ton Esprit dans toutes mes décisions.",
+            "meditation": "L'Esprit nous guide vers la volonté de Dieu.",
+            "goals": ["Apprendre à écouter le Saint-Esprit", "Suivre sa direction"],
+            "tasks": ["Prière de guidance", "Méditation active"]
+          },
+          {
+            "day": 20,
+            "title": "L'Intercession Spirituelle",
+            "verses": ["Rom 8:26-27", "Eph 6:18", "1 Tim 2:1-2"],
+            "prayer": "Aide-moi à intercéder comme tu le souhaites.",
+            "meditation": "L'Esprit intercède pour nous avec des gémissements ineffables.",
+            "goals": ["Prier pour les autres", "L'intercession sincère"],
+            "tasks": ["Prière d'intercession", "Journal des demandes"]
+          },
+          {
+            "day": 21,
+            "title": "Semaine 3 - Résumé",
+            "verses": ["Eph 5:18", "Gal 5:25", "2 Cor 3:17-18"],
+            "prayer": "Remplis-moi continuellement de ton Saint-Esprit.",
+            "meditation": "Être rempli de l'Esprit est l'expérience normale du croyant.",
+            "goals": ["Célébrer l'empowerment", "Continuer dans la puissance"],
+            "tasks": ["Témoignage de puissance", "Engagement continu"]
+          }
+        ]
+      }
+    ]
+  }
+}
