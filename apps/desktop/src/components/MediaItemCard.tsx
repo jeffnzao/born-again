@@ -1,126 +1,100 @@
 import React from 'react'
-import { Heart, Play, Trash2, MoreVertical } from 'lucide-react'
+import { Play, Heart, Trash2, Music } from 'lucide-react'
 import { MediaItem } from '../types/index'
-import { formatDuration, getMediaIcon } from '../utils/mediaImport'
+import { formatDuration } from '../utils/mediaStorage'
 
 interface MediaItemCardProps {
-  media: MediaItem
-  isPlaying: boolean
+  item: MediaItem
   onPlay: () => void
-  onFavorite: () => void
+  onToggleFavorite: () => void
   onDelete: () => void
-  onSelect?: () => void
+  isFavorite: boolean
+  isPlaying: boolean
 }
 
 export const MediaItemCard: React.FC<MediaItemCardProps> = ({
-  media,
-  isPlaying,
+  item,
   onPlay,
-  onFavorite,
+  onToggleFavorite,
   onDelete,
-  onSelect
+  isFavorite,
+  isPlaying
 }) => {
   return (
-    <div
-      onClick={onSelect}
-      className={`bg-slate-800 border rounded-lg overflow-hidden hover:border-sacred-400 transition-all cursor-pointer group ${
-        isPlaying ? 'border-sacred-400 ring-2 ring-sacred-400 ring-opacity-50' : 'border-slate-700'
-      }`}
-    >
+    <div className="group bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl">
       {/* Thumbnail */}
-      <div className="relative w-full bg-gradient-to-br from-slate-700 to-slate-900 aspect-square flex items-center justify-center overflow-hidden">
-        {media.thumbnail ? (
-          <img
-            src={media.thumbnail}
-            alt={media.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-          />
+      <div className="relative h-40 bg-gradient-to-br from-sacred-600 to-purple-600 flex items-center justify-center overflow-hidden">
+        {item.thumbnail ? (
+          <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="text-4xl">{getMediaIcon(media.type)}</div>
-        )}
-
-        {/* Play Button Overlay */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onPlay()
-          }}
-          className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-50 transition-all"
-        >
-          <Play size={48} fill="white" className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-        </button>
-
-        {/* Duration Badge */}
-        {media.duration > 0 && (
-          <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 px-2 py-1 rounded text-xs text-white">
-            {formatDuration(media.duration)}
-          </div>
+          <Music size={48} className="text-white/50" />
         )}
 
         {/* Playing Indicator */}
         {isPlaying && (
-          <div className="absolute top-2 right-2 flex gap-1">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="w-1 h-3 bg-sacred-400 rounded-full animate-pulse"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              />
-            ))}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="flex gap-1">
+              <div className="w-1 h-6 bg-sacred-500 animate-bounce" style={{ animationDelay: '0s' }} />
+              <div className="w-1 h-6 bg-sacred-500 animate-bounce" style={{ animationDelay: '0.1s' }} />
+              <div className="w-1 h-6 bg-sacred-500 animate-bounce" style={{ animationDelay: '0.2s' }} />
+            </div>
           </div>
+        )}
+
+        {/* Duration Badge */}
+        {item.duration > 0 && (
+          <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs font-semibold">
+            {formatDuration(item.duration)}
+          </div>
+        )}
+
+        {/* Hover Actions */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          <button
+            onClick={onPlay}
+            className="p-3 bg-sacred-600 hover:bg-sacred-700 rounded-full transition-colors"
+            aria-label="Lecture"
+          >
+            <Play size={24} className="fill-white" />
+          </button>
+          <button
+            onClick={onToggleFavorite}
+            className={`p-3 rounded-full transition-colors ${
+              isFavorite
+                ? 'bg-red-600 hover:bg-red-700 text-white'
+                : 'bg-slate-600 hover:bg-slate-700 text-white'
+            }`}
+            aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+          >
+            <Heart size={24} className={isFavorite ? 'fill-white' : ''} />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="font-semibold text-white truncate">{item.title}</h3>
+        <p className="text-sm text-slate-400 truncate">
+          {item.artist || item.author || 'Inconnu'}
+        </p>
+        {item.description && (
+          <p className="text-xs text-slate-500 line-clamp-2 mt-2">{item.description}</p>
         )}
       </div>
 
-      {/* Info */}
-      <div className="p-3 space-y-2">
-        <h3 className="font-semibold text-white truncate" title={media.title}>
-          {media.title}
-        </h3>
-
-        {media.artist && (
-          <p className="text-xs text-gray-400 truncate">{media.artist}</p>
-        )}
-
-        {/* Actions */}
-        <div className="flex items-center gap-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onPlay()
-            }}
-            className="flex-1 flex items-center justify-center gap-1 bg-sacred-600 hover:bg-sacred-700 text-white py-2 rounded text-xs font-semibold transition-colors"
-          >
-            <Play size={14} fill="currentColor" />
-            Jouer
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onFavorite()
-            }}
-            className={`p-2 rounded transition-colors ${
-              media.favorite
-                ? 'bg-red-600 text-white'
-                : 'bg-slate-700 text-gray-400 hover:bg-slate-600 hover:text-red-400'
-            }`}
-            title={media.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-          >
-            <Heart size={16} fill={media.favorite ? 'currentColor' : 'none'} />
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onDelete()
-            }}
-            className="p-2 rounded bg-slate-700 text-gray-400 hover:bg-red-900 hover:text-red-400 transition-colors"
-            title="Supprimer"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
+      {/* Footer Actions */}
+      <div className="px-4 pb-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={onDelete}
+          className="flex-1 px-3 py-2 bg-red-900/50 hover:bg-red-700 text-white rounded text-sm transition-colors flex items-center justify-center gap-2"
+          aria-label="Supprimer"
+        >
+          <Trash2 size={16} />
+          Supprimer
+        </button>
       </div>
     </div>
   )
 }
+
+export default MediaItemCard

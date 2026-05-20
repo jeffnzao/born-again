@@ -1,254 +1,197 @@
-import React, { useState } from 'react'
-import { Upload, Plus, ExternalLink, Music, Film } from 'lucide-react'
-import { MediaCategory, MediaItem } from '../types/index'
-import { MediaImportDialog } from './MediaImportDialog'
-import { MediaEmptyState } from './MediaEmptyState'
-import { MediaPlayer } from './MediaPlayer'
-import { MediaItemCard } from './MediaItemCard'
-import { TeachingSourceDialog } from './TeachingSourceDialog'
-import { getCategoryIcon } from '../utils/mediaImport'
-import { PRAYER_THEMES } from '../data/mediaLibrary'
+import React, { useState, useMemo } from 'react'
+import { Music, Heart, Plus, Upload, Eye, EyeOff } from 'lucide-react'
+import { MediaItem, MediaCategory } from '../types/index'
+import { formatDuration } from '../utils/mediaStorage'
+import MediaPlayer from './MediaPlayer'
+import MediaImportDialog from './MediaImportDialog'
+import MediaItemCard from './MediaItemCard'
+import MediaEmptyState from './MediaEmptyState'
 
 interface MediaLibraryPageProps {
-  media: any // from useMediaLibrary hook
+  media: any
   onPlayNext?: () => void
   onPlayPrevious?: () => void
-  onRecommendationClick?: (mediaId: string) => void
 }
+
+const CATEGORIES: { id: MediaCategory; label: string; icon: string }[] = [
+  { id: 'chants', label: 'Chants', icon: '🎵' },
+  { id: 'instrumentaux', label: 'Instrumentaux', icon: '🎹' },
+  { id: 'prières', label: 'Prières', icon: '🙏' },
+  { id: 'podcasts', label: 'Podcasts', icon: '🎙️' },
+  { id: 'hymnes', label: 'Hymnes', icon: '⛪' },
+  { id: 'enseignements', label: 'Enseignements', icon: '📚' },
+  { id: 'livres_audio', label: 'Livres Audio', icon: '📖' },
+  { id: 'favoris', label: 'Favoris', icon: '❤️' }
+]
 
 export const MediaLibraryPage: React.FC<MediaLibraryPageProps> = ({
   media,
   onPlayNext,
-  onPlayPrevious,
-  onRecommendationClick
+  onPlayPrevious
 }) => {
-  const categories: MediaCategory[] = ['chants', 'instrumentaux', 'podcasts', 'enseignements', 'prières', 'livres_audio', 'hymnes', 'favoris']
-  
   const [selectedCategory, setSelectedCategory] = useState<MediaCategory>('chants')
-  const [showImportDialog, setShowImportDialog] = useState(false)
-  const [showTeachingDialog, setShowTeachingDialog] = useState(false)
-  const [importType, setImportType] = useState<any>('song')
-  const [prayerThemeFilter, setPrayerThemeFilter] = useState<string | null>(null)
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
+  const [showPlayer, setShowPlayer] = useState(false)
 
-  // Get filtered media
-  const filteredMedia = selectedCategory === 'favoris'
-    ? media.getFavoritesMedia()
-    : media.getMediaByCategory(selectedCategory)
+  // Get filtered media for selected category
+  const filteredMedia = useMemo(() => {
+    if (!media.mediaLibrary) return []
 
-  // Filter by prayer theme if applicable
-  const displayedMedia = selectedCategory === 'prières' && prayerThemeFilter
-    ? filteredMedia.filter((m: MediaItem) => m.subCategory === prayerThemeFilter)
-    : filteredMedia
+    if (selectedCategory === 'favoris') {
+      return media.mediaLibrary.filter((m: MediaItem) => m.favorite)
+    }
+    return media.mediaLibrary.filter((m: MediaItem) => m.category === selectedCategory)
+  }, [media.mediaLibrary, selectedCategory])
 
-  const handleImportClick = (type: any, category: MediaCategory) => {
-    setImportType({ type, category })
-    setShowImportDialog(true)
+  const handlePlayMedia = (item: MediaItem) => {
+    media.playMedia(item)
+    setShowPlayer(true)
   }
 
-  const handleImportedMedia = (items: MediaItem[]) => {
-    items.forEach(item => media.addToLibrary(item))
+  const handleToggleFavorite = (mediaId: string) => {
+    media.toggleFavorite(mediaId)
   }
 
-  const handleAddTeaching = (teaching: MediaItem) => {
-    media.addToLibrary(teaching)
-    setShowTeachingDialog(false)
+  const handleDeleteMedia = (mediaId: string) => {
+    media.removeFromLibrary(mediaId)
+  }
+
+  const handleImportMedia = (items: MediaItem[]) => {
+    items.forEach(item => {
+      media.addToLibrary(item)
+    })
+    setIsImportDialogOpen(false)
+  }
+
+  const handleVolumeChange = (volume: number) => {
+    media.setVolume(volume)
+  }
+
+  const handleTimeChange = (time: number) => {
+    media.setCurrentTime(time)
+  }
+
+  const handleSpeedChange = (speed: number) => {
+    media.setPlaybackSpeed(speed)
+  }
+
+  const categoryCount = (category: MediaCategory): number => {
+    if (!media.mediaLibrary) return 0
+    if (category === 'favoris') {
+      return media.mediaLibrary.filter((m: MediaItem) => m.favorite).length
+    }
+    return media.mediaLibrary.filter((m: MediaItem) => m.category === category).length
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-4xl font-bold mb-2 text-sacred-400">Bibliothèque Spirituelle</h1>
-      <p className="text-gray-400 mb-8">Importez vos médias spirituels, créez des listes de lecture et écoutez</p>
-
-      {/* Current Player */}
-      {media.currentMedia && (
-        <div className="mb-8">
-          <MediaPlayer
-            media={media.currentMedia}
-            isPlaying={media.isPlaying}
-            currentTime={media.currentTime}
-            volume={media.volume}
-            playbackSpeed={media.playbackSpeed}
-            onPlayPause={() => media.isPlaying ? media.pauseMedia() : media.resumeMedia()}
-            onNext={onPlayNext}
-            onPrevious={onPlayPrevious}
-            onTimeChange={media.setCurrentTime}
-            onVolumeChange={media.setVolume}
-            onSpeedChange={media.setPlaybackSpeed}
-          />
-        </div>
-      )}
-
-      {/* Category Navigation */}
-      <div className="mb-8 overflow-x-auto">
-        <div className="flex gap-2 pb-2">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => {
-                setSelectedCategory(category)
-                setPrayerThemeFilter(null)
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
-                selectedCategory === category
-                  ? 'bg-sacred-600 text-white ring-2 ring-sacred-400'
-                  : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-              }`}
-            >
-              <span>{getCategoryIcon(category)}</span>
-              <span className="capitalize">{category}</span>
-              {selectedCategory === category && media.getMediaByCategory(category).length > 0 && (
-                <span className="ml-1 text-xs bg-black bg-opacity-30 px-2 py-0.5 rounded-full">
-                  {media.getMediaByCategory(category).length}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Prayer Theme Filter (only for Prières category) */}
-      {selectedCategory === 'prières' && displayedMedia.length > 0 && (
-        <div className="mb-6 bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <p className="text-sm text-gray-400 mb-3">Filtrer par thème:</p>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setPrayerThemeFilter(null)}
-              className={`px-3 py-1 rounded text-sm transition-colors ${
-                prayerThemeFilter === null
-                  ? 'bg-sacred-600 text-white'
-                  : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-              }`}
-            >
-              Tous
-            </button>
-            {PRAYER_THEMES.map(theme => (
-              <button
-                key={theme.id}
-                onClick={() => setPrayerThemeFilter(theme.id)}
-                className={`px-3 py-1 rounded text-sm transition-colors flex items-center gap-1 ${
-                  prayerThemeFilter === theme.id
-                    ? 'bg-sacred-600 text-white'
-                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                }`}
-              >
-                {theme.icon} {theme.label}
-              </button>
-            ))}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white pb-40">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-sacred-600 to-purple-600 p-8 shadow-lg">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-4 mb-2">
+            <Music size={40} className="text-white" />
+            <div>
+              <h1 className="text-4xl font-bold">Bibliothèque Médias</h1>
+              <p className="text-white/80">Organisez et écoutez vos contenus spirituels</p>
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Quick Import Section */}
-      <div className="mb-8 bg-gradient-to-r from-sacred-900 to-sacred-800 rounded-lg p-6 border border-sacred-700">
-        <h2 className="text-xl font-bold mb-4 text-sacred-300">Importer rapidement</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button
-            onClick={() => handleImportClick('song', 'chants')}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-sacred-500 rounded-lg p-3 transition-all text-sm font-semibold"
-          >
-            <span>🎵</span> Chants
-          </button>
-          <button
-            onClick={() => handleImportClick('hymn', 'hymnes')}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-sacred-500 rounded-lg p-3 transition-all text-sm font-semibold"
-          >
-            <span>🎼</span> Hymnes
-          </button>
-          <button
-            onClick={() => handleImportClick('prayer', 'prières')}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-sacred-500 rounded-lg p-3 transition-all text-sm font-semibold"
-          >
-            <span>🙏</span> Prières
-          </button>
-          <button
-            onClick={() => handleImportClick('audiobook', 'livres_audio')}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-sacred-500 rounded-lg p-3 transition-all text-sm font-semibold"
-          >
-            <span>📖</span> Livres Audio
-          </button>
-          <button
-            onClick={() => handleImportClick('instrumental', 'instrumentaux')}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-sacred-500 rounded-lg p-3 transition-all text-sm font-semibold"
-          >
-            <span>🎶</span> Instrumentaux
-          </button>
-          <button
-            onClick={() => handleImportClick('podcast', 'podcasts')}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-sacred-500 rounded-lg p-3 transition-all text-sm font-semibold"
-          >
-            <span>🎙️</span> Podcasts
-          </button>
-          <button
-            onClick={() => {
-              setShowTeachingDialog(true)
-            }}
-            className="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 border border-blue-600 hover:border-blue-500 rounded-lg p-3 transition-all text-sm font-semibold"
-          >
-            <span>🔗</span> Lien externe
-          </button>
-        </div>
       </div>
 
-      {/* Media Grid */}
-      {displayedMedia.length === 0 ? (
-        <MediaEmptyState
-          category={selectedCategory}
-          onImportClick={() => handleImportClick(
-            selectedCategory === 'chants' ? 'song' :
-            selectedCategory === 'hymnes' ? 'hymn' :
-            selectedCategory === 'prières' ? 'prayer' :
-            selectedCategory === 'livres_audio' ? 'audiobook' :
-            selectedCategory === 'instrumentaux' ? 'instrumental' :
-            selectedCategory === 'podcasts' ? 'podcast' : 'teaching',
-            selectedCategory
-          )}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Quick Actions */}
+        <div className="flex gap-4 mb-8">
+          <button
+            onClick={() => setIsImportDialogOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-sacred-600 hover:bg-sacred-700 rounded-lg font-semibold transition-colors"
+          >
+            <Upload size={20} />
+            Importer un Média
+          </button>
+          <button
+            onClick={() => setShowPlayer(!showPlayer)}
+            className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-colors"
+          >
+            {showPlayer ? <EyeOff size={20} /> : <Eye size={20} />}
+            {showPlayer ? 'Masquer' : 'Afficher'} le Lecteur
+          </button>
+        </div>
+
+        {/* Category Tabs */}
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-4">
+          {CATEGORIES.map(category => {
+            const isSelected = selectedCategory === category.id
+            const count = categoryCount(category.id)
+            return (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`flex items-center gap-2 px-4 py-3 rounded-lg font-semibold whitespace-nowrap transition-all ${
+                  isSelected
+                    ? 'bg-sacred-600 text-white shadow-lg'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                <span>{category.icon}</span>
+                <span>{category.label}</span>
+                {count > 0 && (
+                  <span className="bg-slate-700 px-2 py-1 rounded text-xs ml-1">
+                    {count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Media Grid */}
+        {filteredMedia.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredMedia.map((item: MediaItem) => (
+              <MediaItemCard
+                key={item.id}
+                item={item}
+                onPlay={() => handlePlayMedia(item)}
+                onToggleFavorite={() => handleToggleFavorite(item.id)}
+                onDelete={() => handleDeleteMedia(item.id)}
+                isFavorite={item.favorite}
+                isPlaying={media.currentMedia?.id === item.id && media.isPlaying}
+              />
+            ))}
+          </div>
+        ) : (
+          <MediaEmptyState category={selectedCategory} />
+        )}
+      </div>
+
+      {/* Media Player */}
+      {showPlayer && (
+        <MediaPlayer
+          media={media.currentMedia}
+          isPlaying={media.isPlaying}
+          volume={media.volume}
+          currentTime={media.currentTime}
+          playbackSpeed={media.playbackSpeed}
+          onPlayNext={onPlayNext || (() => {})}
+          onPlayPrevious={onPlayPrevious || (() => {})}
+          onPlay={() => media.playMedia(media.currentMedia)}
+          onPause={() => media.pauseMedia()}
+          onVolumeChange={handleVolumeChange}
+          onTimeChange={handleTimeChange}
+          onSpeedChange={handleSpeedChange}
+          onClose={() => setShowPlayer(false)}
         />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-          {displayedMedia.map((item: MediaItem) => (
-            <MediaItemCard
-              key={item.id}
-              media={item}
-              isPlaying={media.isPlaying && media.currentMedia?.id === item.id}
-              onPlay={() => media.playMedia(item)}
-              onFavorite={() => media.toggleFavorite(item.id)}
-              onDelete={() => media.removeFromLibrary(item.id)}
-              onSelect={() => media.playMedia(item)}
-            />
-          ))}
-        </div>
       )}
 
-      {/* Info Section */}
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-blue-900 bg-opacity-20 border border-blue-500 border-opacity-30 rounded-lg p-6">
-          <h3 className="text-lg font-bold text-blue-400 mb-2">📂 Organisation</h3>
-          <p className="text-sm text-gray-300">
-            Vos médias importés sont automatiquement organisés par catégories. Vous pouvez marquer vos favoris pour un accès rapide.
-          </p>
-        </div>
-        <div className="bg-purple-900 bg-opacity-20 border border-purple-500 border-opacity-30 rounded-lg p-6">
-          <h3 className="text-lg font-bold text-purple-400 mb-2">🎯 Lecteur avancé</h3>
-          <p className="text-sm text-gray-300">
-            Contrôlez la vitesse de lecture, le volume, et reprenez où vous aviez arrêté. Tous vos médias sont synchronisés.
-          </p>
-        </div>
-      </div>
-
-      {/* Dialogs */}
-      <MediaImportDialog
-        isOpen={showImportDialog}
-        onClose={() => setShowImportDialog(false)}
-        onImport={handleImportedMedia}
-        defaultType={importType.type}
-        defaultCategory={importType.category}
-      />
-
-      <TeachingSourceDialog
-        isOpen={showTeachingDialog}
-        onClose={() => setShowTeachingDialog(false)}
-        onAddTeaching={handleAddTeaching}
-      />
+      {/* Import Dialog */}
+      {isImportDialogOpen && (
+        <MediaImportDialog
+          onImport={handleImportMedia}
+          onClose={() => setIsImportDialogOpen(false)}
+        />
+      )}
     </div>
   )
 }
+
+export default MediaLibraryPage

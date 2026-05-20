@@ -1,0 +1,148 @@
+{
+  "chants": [
+    {
+      "id": "chant_001",
+      "title": "Au Nom de Jésus",
+      "filename": "chant_au_nom_jesus.mp3",
+      "type": "song",
+      "category": "chants",
+      "duration": 240,
+      "artist": "Culte Vivant",
+      "thumbnail": "/default-media/chants/thumb_001.jpg",
+      "description": "Chant de victoire et de louange"
+    },
+    {
+      "id": "chant_002",
+      "title": "Victoire en Christ",
+      "filename": "chant_victoire_christ.mp3",
+      "type": "song",
+      "category": "chants",
+      "duration": 320,
+      "artist": "Ensemble Chrétien",
+      "thumbnail": "/default-media/chants/thumb_002.jpg",
+      "description": "Célébrer la victoire du Christ"
+    },
+    {
+      "id": "chant_003",
+      "title": "Grâce Suffisante",
+      "filename": "chant_grace_suffisante.mp3",
+      "type": "song",
+      "category": "chants",
+      "duration": 280,
+      "artist": "Jeunes Louange",
+      "thumbnail": "/default-media/chants/thumb_003.jpg",
+      "description": "La grâce de Dieu est suffisante"
+    }
+  ],
+  "instrumentaux": [
+    {
+      "id": "inst_001",
+      "title": "Musique de Prière Apaisante",
+      "filename": "instrumental_prayer.mp3",
+      "type": "instrumental",
+      "category": "instrumentaux",
+      "duration": 600,
+      "artist": "Composition Spirituelle",
+      "thumbnail": "/default-media/instrumentaux/thumb_001.jpg",
+      "description": "Fond musical pour la prière"
+    },
+    {
+      "id": "inst_002",
+      "title": "Piano Méditation",
+      "filename": "instrumental_piano_meditation.mp3",
+      "type": "instrumental",
+      "category": "instrumentaux",
+      "duration": 720,
+      "artist": "Musique Sacrée",
+      "thumbnail": "/default-media/instrumentaux/thumb_002.jpg",
+      "description": "Piano relaxant pour la méditation"
+    }
+  ],
+  "prieres": [
+    {
+      "id": "prayer_001",
+      "title": "Prière de Repentance",
+      "filename": "prayer_repentance.mp3",
+      "type": "prayer",
+      "category": "prières",
+      "subCategory": "repentance",
+      "duration": 480,
+      "description": "Prière guidée pour la repentance",
+      "thumbnail": "/default-media/prieres/thumb_001.jpg"
+    },
+    {
+      "id": "prayer_002",
+      "title": "Prière de Force Spirituelle",
+      "filename": "prayer_spiritual_strength.mp3",
+      "type": "prayer",
+      "category": "prières",
+      "subCategory": "combat_spirituel",
+      "duration": 420,
+      "description": "Force pour le combat spirituel",
+      "thumbnail": "/default-media/prieres/thumb_002.jpg"
+    }
+  ],
+  "podcasts": [
+    {
+      "id": "podcast_001",
+      "title": "Réflexion Spirituelle Quotidienne",
+      "filename": "podcast_daily_reflection.mp3",
+      "type": "podcast",
+      "category": "podcasts",
+      "duration": 1200,
+      "artist": "Pasteur Emmanuel",
+      "thumbnail": "/default-media/podcasts/thumb_001.jpg",
+      "description": "Réflexion quotidienne sur la foi"
+    }
+  ],
+  "hymnes": [
+    {
+      "id": "hymn_001",
+      "title": "Grand Dieu, Nous te Louons",
+      "filename": "hymn_praise_god.mp3",
+      "type": "hymn",
+      "category": "hymnes",
+      "duration": 280,
+      "artist": "Ensemble d'Hymnes",
+      "thumbnail": "/default-media/hymnes/thumb_001.jpg",
+      "description": "Hymne traditionnel de louange"
+    },
+    {
+      "id": "hymn_002",
+      "title": "Jésus Sauve",
+      "filename": "hymn_jesus_saves.mp3",
+      "type": "hymn",
+      "category": "hymnes",
+      "duration": 240,
+      "artist": "Chorale Sacrée",
+      "thumbnail": "/default-media/hymnes/thumb_002.jpg",
+      "description": "Hymne de salut et de rédemption"
+    }
+  ],
+  "livres-audio": [
+    {
+      "id": "audiobook_001",
+      "title": "La Vie Normale du Chrétien",
+      "filename": "audiobook_normal_life.mp3",
+      "type": "audiobook",
+      "category": "livres_audio",
+      "duration": 7200,
+      "author": "Watchman Nee",
+      "thumbnail": "/default-media/livres-audio/thumb_001.jpg",
+      "description": "Enseignement sur la vie chrétienne normale"
+    }
+  ],
+  "enseignements": [
+    {
+      "id": "teach_001",
+      "title": "La Pureté Spirituelle",
+      "filename": "teaching_purity.mp4",
+      "type": "teaching",
+      "category": "enseignements",
+      "duration": 1800,
+      "artist": "Pasteur Jean",
+      "thumbnail": "/default-media/enseignements/thumb_001.jpg",
+      "description": "Enseignement sur la pureté spirituelle"
+    }
+  ]
+}

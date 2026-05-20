@@ -1,178 +1,240 @@
-import React, { useRef, useEffect, useState } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Volume2, Zap } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+import {
+  Play,
+  Pause,
+  Volume2,
+  SkipBack,
+  SkipForward,
+  X
+} from 'lucide-react'
 import { MediaItem } from '../types/index'
-import { formatDuration } from '../utils/mediaImport'
+import { formatDuration } from '../utils/mediaStorage'
 
 interface MediaPlayerProps {
   media: MediaItem | null
   isPlaying: boolean
-  currentTime: number
   volume: number
+  currentTime: number
   playbackSpeed: number
-  onPlayPause: () => void
-  onNext?: () => void
-  onPrevious?: () => void
-  onTimeChange: (time: number) => void
+  onPlayNext?: () => void
+  onPlayPrevious?: () => void
+  onPlay: () => void
+  onPause: () => void
   onVolumeChange: (volume: number) => void
+  onTimeChange: (time: number) => void
   onSpeedChange: (speed: number) => void
+  onClose?: () => void
 }
 
 export const MediaPlayer: React.FC<MediaPlayerProps> = ({
   media,
   isPlaying,
-  currentTime,
   volume,
+  currentTime,
   playbackSpeed,
-  onPlayPause,
-  onNext,
-  onPrevious,
-  onTimeChange,
+  onPlayNext,
+  onPlayPrevious,
+  onPlay,
+  onPause,
   onVolumeChange,
-  onSpeedChange
+  onTimeChange,
+  onSpeedChange,
+  onClose
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [duration, setDuration] = useState(0)
+  const [buffered, setBuffered] = useState(0)
 
+  // Handle play/pause
   useEffect(() => {
-    const audio = audioRef.current
-    if (!audio || !media) return
+    if (!audioRef.current || !media) return
 
-    // Update audio source
-    audio.src = media.url
-    audio.playbackRate = playbackSpeed
-    audio.volume = volume
-
-    // Handle play/pause
     if (isPlaying) {
-      audio.play().catch(err => console.error('Play error:', err))
+      audioRef.current.play().catch(err => console.error('Playback error:', err))
     } else {
-      audio.pause()
+      audioRef.current.pause()
     }
-  }, [media, isPlaying, playbackSpeed, volume])
+  }, [isPlaying, media])
 
+  // Update audio source
+  useEffect(() => {
+    if (!audioRef.current || !media) return
+    audioRef.current.src = media.url
+    audioRef.current.currentTime = currentTime
+  }, [media, currentTime])
+
+  // Handle audio events
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
-
-    const handleTimeUpdate = () => {
-      onTimeChange(audio.currentTime)
-    }
 
     const handleLoadedMetadata = () => {
       setDuration(audio.duration)
     }
 
-    const handleEnded = () => {
-      onNext?.()
+    const handleTimeUpdate = () => {
+      setBuffered(audio.buffered.length > 0 ? audio.buffered.end(0) : 0)
+      // Only update if not seeking
+      if (!isUserSeeking) {
+        onTimeChange(audio.currentTime)
+      }
     }
 
-    audio.addEventListener('timeupdate', handleTimeUpdate)
+    const handleEnded = () => {
+      onPlayNext?.()
+    }
+
     audio.addEventListener('loadedmetadata', handleLoadedMetadata)
+    audio.addEventListener('timeupdate', handleTimeUpdate)
     audio.addEventListener('ended', handleEnded)
 
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate)
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      audio.removeEventListener('timeupdate', handleTimeUpdate)
       audio.removeEventListener('ended', handleEnded)
     }
-  }, [onNext, onTimeChange])
+  }, [onTimeChange, onPlayNext])
 
-  if (!media) {
-    return (
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 text-center text-gray-400">
-        Aucun média sélectionné
-      </div>
-    )
+  // Handle volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume
+    }
+  }, [volume])
+
+  // Handle playback speed
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackSpeed
+    }
+  }, [playbackSpeed])
+
+  const [isUserSeeking, setIsUserSeeking] = useState(false)
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!audioRef.current) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const percent = (e.clientX - rect.left) / rect.width
+    const newTime = percent * duration
+    audioRef.current.currentTime = newTime
+    onTimeChange(newTime)
   }
 
+  const handleProgressMouseDown = () => {
+    setIsUserSeeking(true)
+  }
+
+  const handleProgressMouseUp = () => {
+    setIsUserSeeking(false)
+  }
+
+  if (!media) {
+    return null
+  }
+
+  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0
+  const bufferedPercent = duration > 0 ? (buffered / duration) * 100 : 0
+
   return (
-    <div className="bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden">
+    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black via-slate-900 to-slate-800 text-white shadow-2xl border-t border-sacred-500/20 z-40">
       <audio ref={audioRef} crossOrigin="anonymous" />
 
-      {/* Media Info */}
-      <div className="p-4 border-b border-slate-700">
-        <h3 className="text-lg font-bold text-white truncate">{media.title}</h3>
-        {media.artist && (
-          <p className="text-sm text-gray-400">{media.artist}</p>
-        )}
-      </div>
-
       {/* Progress Bar */}
-      <div className="px-4 pt-4">
-        <input
-          type="range"
-          min="0"
-          max={duration || 0}
-          value={currentTime || 0}
-          onChange={(e) => {
-            const audio = audioRef.current
-            if (audio) {
-              audio.currentTime = parseFloat(e.target.value)
-              onTimeChange(parseFloat(e.target.value))
-            }
-          }}
-          className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sacred-500"
+      <div
+        className="w-full h-1 bg-slate-700 cursor-pointer group"
+        onClick={handleProgressClick}
+        onMouseDown={handleProgressMouseDown}
+        onMouseUp={handleProgressMouseUp}
+        onMouseLeave={handleProgressMouseUp}
+      >
+        <div
+          className="h-full bg-slate-400 transition-all"
+          style={{ width: `${bufferedPercent}%` }}
         />
-        <div className="flex justify-between text-xs text-gray-400 mt-1">
-          <span>{formatDuration(Math.floor(currentTime))}</span>
-          <span>{formatDuration(Math.floor(duration))}</span>
-        </div>
+        <div
+          className="absolute -top-2 h-5 w-1 bg-sacred-500 opacity-0 group-hover:opacity-100 transition-all"
+          style={{ left: `${progressPercent}%` }}
+        />
+        <div
+          className="h-full bg-sacred-500 transition-all"
+          style={{ width: `${progressPercent}%` }}
+        />
       </div>
 
-      {/* Controls */}
-      <div className="p-4 space-y-4">
-        {/* Play Controls */}
-        <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={onPrevious}
-            disabled={!onPrevious}
-            className="text-gray-400 hover:text-white disabled:opacity-50 transition-colors"
-          >
-            <SkipBack size={24} />
-          </button>
-
-          <button
-            onClick={onPlayPause}
-            className="bg-sacred-600 hover:bg-sacred-700 text-white p-3 rounded-full transition-colors"
-          >
-            {isPlaying ? <Pause size={28} /> : <Play size={28} fill="currentColor" />}
-          </button>
-
-          <button
-            onClick={onNext}
-            disabled={!onNext}
-            className="text-gray-400 hover:text-white disabled:opacity-50 transition-colors"
-          >
-            <SkipForward size={24} />
-          </button>
+      <div className="p-4">
+        {/* Media Info */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h3 className="font-semibold text-white truncate">{media.title}</h3>
+            <p className="text-sm text-slate-400">{media.artist || media.author || 'Inconnu'}</p>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="ml-2 p-2 hover:bg-slate-700 rounded-lg transition-colors"
+              aria-label="Fermer le lecteur"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
 
-        {/* Volume and Speed */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Controls */}
+        <div className="flex items-center justify-between gap-4">
+          {/* Time Display */}
+          <div className="text-sm font-mono text-slate-300 min-w-12">
+            {formatDuration(Math.floor(currentTime))}
+          </div>
+
+          {/* Main Controls */}
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={onPlayPrevious}
+              className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+              aria-label="Piste précédente"
+            >
+              <SkipBack size={20} />
+            </button>
+
+            <button
+              onClick={isPlaying ? onPause : onPlay}
+              className="p-3 bg-sacred-500 hover:bg-sacred-600 rounded-full transition-colors"
+              aria-label={isPlaying ? 'Pause' : 'Lecture'}
+            >
+              {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+            </button>
+
+            <button
+              onClick={onPlayNext}
+              className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+              aria-label="Piste suivante"
+            >
+              <SkipForward size={20} />
+            </button>
+          </div>
+
           {/* Volume Control */}
           <div className="flex items-center gap-2">
-            <Volume2 size={18} className="text-gray-400" />
+            <Volume2 size={20} />
             <input
               type="range"
               min="0"
               max="1"
               step="0.1"
               value={volume}
-              onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-              className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sacred-500"
+              onChange={e => onVolumeChange(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+              aria-label="Volume"
             />
-            <span className="text-xs text-gray-400 w-6 text-right">
-              {Math.round(volume * 100)}%
-            </span>
           </div>
 
           {/* Speed Control */}
           <div className="flex items-center gap-2">
-            <Zap size={18} className="text-gray-400" />
             <select
               value={playbackSpeed}
-              onChange={(e) => onSpeedChange(parseFloat(e.target.value))}
-              className="flex-1 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-sacred-400"
+              onChange={e => onSpeedChange(parseFloat(e.target.value))}
+              className="bg-slate-700 text-white text-sm px-2 py-1 rounded border border-slate-600 hover:border-sacred-500"
+              aria-label="Vitesse de lecture"
             >
               <option value={0.5}>0.5x</option>
               <option value={0.75}>0.75x</option>
@@ -182,8 +244,15 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
               <option value={2}>2x</option>
             </select>
           </div>
+
+          {/* Duration Display */}
+          <div className="text-sm font-mono text-slate-300 min-w-12 text-right">
+            {formatDuration(Math.floor(duration))}
+          </div>
         </div>
       </div>
     </div>
   )
 }
+
+export default MediaPlayer

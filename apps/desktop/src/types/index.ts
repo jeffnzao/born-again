@@ -128,11 +128,14 @@ export interface MediaItem {
 export interface Recommendation {
   id: string
   title: string
+  description?: string
+  mediaId?: string
   reason: string
-  type: 'media' | 'verse' | 'task'
-  contentId: string
-  priority: 'high' | 'medium' | 'low'
-  timestamp: number
+  type?: 'media' | 'verse' | 'task'
+  contentId?: string
+  priority?: 'high' | 'medium' | 'low'
+  timestamp?: number
+  icon?: string
 }
 
 // SPIRITUAL PROGRESS

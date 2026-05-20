@@ -1,72 +1,60 @@
 import React from 'react'
-import { Upload, Music } from 'lucide-react'
+import { Music, Inbox } from 'lucide-react'
 import { MediaCategory } from '../types/index'
 
 interface MediaEmptyStateProps {
   category: MediaCategory
-  onImportClick: () => void
 }
 
-const emptyMessages: Record<MediaCategory, { title: string; description: string }> = {
-  chants: {
-    title: 'Aucun chant disponible',
-    description: 'Importez vos chants préférés ou explorez des recommandations'
-  },
-  instrumentaux: {
-    title: 'Aucun instrumental disponible',
-    description: 'Ajoutez des musiques instrumentales pour la prière et la méditation'
-  },
-  podcasts: {
-    title: 'Aucun podcast',
-    description: 'Importez des fichiers audio ou ajoutez des liens externes'
-  },
-  enseignements: {
-    title: 'Aucun enseignement',
-    description: 'Ajoutez des vidéos ou des enseignements spirituels'
-  },
-  prières: {
-    title: 'Aucune prière enregistrée',
-    description: 'Importez vos prières guidées ou ajoutez des prières audio'
-  },
-  livres_audio: {
-    title: 'Aucun livre audio',
-    description: 'Importez vos livres audio spirituels'
-  },
-  hymnes: {
-    title: 'Aucun hymne disponible',
-    description: 'Importez vos hymnes préférés'
-  },
-  favoris: {
-    title: 'Aucun favori',
-    description: 'Marquez vos médias préférés pour un accès rapide'
+export const MediaEmptyState: React.FC<MediaEmptyStateProps> = ({ category }) => {
+  const categoryMessages: Record<MediaCategory, { title: string; message: string }> = {
+    chants: {
+      title: 'Aucun Chant',
+      message: 'Commencez par importer vos chants favoris pour peupler cette catégorie'
+    },
+    instrumentaux: {
+      title: 'Aucune Musique Instrumentale',
+      message: 'Importez des compositions musicales apaisantes pour vos moments de méditation'
+    },
+    prières: {
+      title: 'Aucune Prière',
+      message: 'Créez une collection de prières guidées pour vos moments spirituels'
+    },
+    podcasts: {
+      title: 'Aucun Podcast',
+      message: 'Ajoutez des podcasts spirituels à votre bibliothèque'
+    },
+    hymnes: {
+      title: 'Aucun Hymne',
+      message: 'Enrichissez votre collection avec des hymnes chrétiens'
+    },
+    enseignements: {
+      title: 'Aucun Enseignement',
+      message: 'Importez des vidéos et des contenus pédagogiques'
+    },
+    livres_audio: {
+      title: 'Aucun Livre Audio',
+      message: 'Ajoutez des livres audio à votre bibliothèque'
+    },
+    favoris: {
+      title: 'Aucun Favori',
+      message: 'Marquez vos contenus préférés comme favoris pour y accéder rapidement'
+    }
   }
-}
 
-export const MediaEmptyState: React.FC<MediaEmptyStateProps> = ({
-  category,
-  onImportClick
-}) => {
-  const message = emptyMessages[category]
+  const content = categoryMessages[category]
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <Music size={64} className="text-sacred-400 text-opacity-30 mb-6" />
-      
-      <h3 className="text-2xl font-bold text-gray-300 mb-2">
-        {message.title}
-      </h3>
-      
-      <p className="text-gray-400 mb-8 max-w-sm">
-        {message.description}
-      </p>
-      
-      <button
-        onClick={onImportClick}
-        className="flex items-center gap-2 bg-sacred-600 hover:bg-sacred-700 px-6 py-3 rounded-lg font-semibold text-white transition-colors"
-      >
-        <Upload size={20} />
-        Importer des médias
-      </button>
+    <div className="text-center py-16">
+      <Inbox size={64} className="mx-auto text-slate-600 mb-4" />
+      <h3 className="text-2xl font-semibold text-white mb-2">{content.title}</h3>
+      <p className="text-slate-400 mb-6">{content.message}</p>
+      <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+        <Music size={16} />
+        <span>Importer des médias pour commencer</span>
+      </div>
     </div>
   )
 }
+
+export default MediaEmptyState

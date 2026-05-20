@@ -1,67 +1,85 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useAppStore } from '../store/appStore'
-import { MediaItem, Recommendation, SpiritualProgress, MediaCategory } from '../types/index'
-import { mediaLibrary, generateRecommendations, filterMediaByCategory, getFavorites } from '../data/mediaLibrary'
+import { MediaItem, MediaCategory, SpiritualProgress, Recommendation } from '../types/index'
+import {
+  getMediaLibrary,
+  getMediaByCategory,
+  getFavorites,
+  addMediaToLibrary,
+  removeMediaFromLibrary,
+  toggleFavorite as toggleFavoriteStorage,
+  loadDefaultMedia,
+  updateMedia
+} from '../utils/mediaStorage'
 
 // HOOK: Media Library - Real File Management
 export const useMediaLibrary = () => {
-  const store = useAppStore()
   const [currentMedia, setCurrentMedia] = useState<MediaItem | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(0.8)
   const [currentTime, setCurrentTime] = useState(0)
   const [playbackSpeed, setPlaybackSpeed] = useState(1)
   const [loadingState, setLoadingState] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [mediaLibrary, setMediaLibrary] = useState<MediaItem[]>([])
+  const [libraryLoaded, setLibraryLoaded] = useState(false)
+
+  // Load library on mount
+  useEffect(() => {
+    const initializeLibrary = async () => {
+      setLoadingState('loading')
+      try {
+        await loadDefaultMedia()
+        const loaded = getMediaLibrary()
+        setMediaLibrary(loaded)
+        setLibraryLoaded(true)
+        setLoadingState('idle')
+      } catch (error) {
+        console.error('Error loading library:', error)
+        setLoadingState('error')
+      }
+    }
+
+    if (!libraryLoaded) {
+      initializeLibrary()
+    }
+  }, [libraryLoaded])
+
+  const refreshLibrary = useCallback(() => {
+    const current = getMediaLibrary()
+    setMediaLibrary(current)
+  }, [])
 
   const getLibrary = useCallback((): MediaItem[] => {
-    const saved = localStorage.getItem('appState_media')
-    return saved ? JSON.parse(saved) : mediaLibrary
+    return getMediaLibrary()
   }, [])
 
   const addToLibrary = useCallback((media: MediaItem) => {
-    const library = getLibrary()
-    const exists = library.some(m => m.id === media.id)
-    if (!exists) {
-      const updated = [...library, media]
-      localStorage.setItem('appState_media', JSON.stringify(updated))
-    }
-  }, [getLibrary])
+    addMediaToLibrary(media)
+    refreshLibrary()
+  }, [refreshLibrary])
 
   const removeFromLibrary = useCallback((mediaId: string) => {
-    const library = getLibrary()
-    const updated = library.filter(m => m.id !== mediaId)
-    localStorage.setItem('appState_media', JSON.stringify(updated))
+    removeMediaFromLibrary(mediaId)
     if (currentMedia?.id === mediaId) {
       setCurrentMedia(null)
       setIsPlaying(false)
     }
-  }, [getLibrary, currentMedia])
+    refreshLibrary()
+  }, [currentMedia, refreshLibrary])
 
   const toggleFavorite = useCallback((mediaId: string) => {
-    const library = getLibrary()
-    const updated = library.map(m =>
-      m.id === mediaId ? { ...m, favorite: !m.favorite } : m
-    )
-    localStorage.setItem('appState_media', JSON.stringify(updated))
-  }, [getLibrary])
+    toggleFavoriteStorage(mediaId)
+    refreshLibrary()
+  }, [refreshLibrary])
 
-  const updatePlaybackProgress = useCallback((mediaId: string, currentTime: number) => {
-    const library = getLibrary()
-    const updated = library.map(m => {
-      if (m.id === mediaId) {
-        return {
-          ...m,
-          playbackProgress: {
-            currentTime,
-            lastPlayedAt: Date.now(),
-            chapters: m.playbackProgress?.chapters
-          }
-        }
+  const updatePlaybackProgress = useCallback((mediaId: string, newTime: number) => {
+    updateMedia(mediaId, {
+      playbackProgress: {
+        currentTime: newTime,
+        lastPlayedAt: Date.now()
       }
-      return m
     })
-    localStorage.setItem('appState_media', JSON.stringify(updated))
-  }, [getLibrary])
+    setCurrentTime(newTime)
+  }, [])
 
   const playMedia = useCallback((media: MediaItem) => {
     setCurrentMedia(media)
@@ -86,14 +104,13 @@ export const useMediaLibrary = () => {
   }, [])
 
   const getMediaByCategory = useCallback((category: MediaCategory) => {
-    const library = getLibrary()
-    return filterMediaByCategory(library, category)
-  }, [getLibrary])
+    const lib = getMediaLibrary()
+    return lib.filter(m => m.category === category)
+  }, [])
 
   const getFavoritesMedia = useCallback(() => {
-    const library = getLibrary()
-    return getFavorites(library)
-  }, [getLibrary])
+    return getFavorites()
+  }, [])
 
   return {
     currentMedia,
@@ -102,7 +119,7 @@ export const useMediaLibrary = () => {
     currentTime,
     playbackSpeed,
     loadingState,
-    mediaLibrary: getLibrary(),
+    mediaLibrary,
     playMedia,
     pauseMedia,
     resumeMedia,
@@ -116,28 +133,35 @@ export const useMediaLibrary = () => {
     setVolume,
     setCurrentTime,
     setPlaybackSpeed,
-    setLoadingState
+    setLoadingState,
+    refreshLibrary,
+    getLibrary
   }
 }
 
 // HOOK: Spiritual Progress Tracking
 export const useSpiritualProgress = () => {
-  const store = useAppStore()
   const [progress, setProgress] = useState<SpiritualProgress>(() => {
     const saved = localStorage.getItem('appState_progress')
     if (saved) {
-      return JSON.parse(saved)
+      try {
+        return JSON.parse(saved)
+      } catch {
+        return getDefaultProgress()
+      }
     }
-    return {
-      currentWeek: 1,
-      currentDay: 1,
-      daysCompleted: 0,
-      weekStartDate: Date.now(),
-      lastUpdateDate: Date.now(),
-      meditationsCompleted: 0,
-      prayerSessionsCompleted: 0,
-      mediaListenedMinutes: 0
-    }
+    return getDefaultProgress()
+  })
+
+  const getDefaultProgress = (): SpiritualProgress => ({
+    currentWeek: 1,
+    currentDay: 1,
+    daysCompleted: 0,
+    weekStartDate: Date.now(),
+    lastUpdateDate: Date.now(),
+    meditationsCompleted: 0,
+    prayerSessionsCompleted: 0,
+    mediaListenedMinutes: 0
   })
 
   const updateDay = useCallback((newDay: number) => {
@@ -163,153 +187,133 @@ export const useSpiritualProgress = () => {
     localStorage.setItem('appState_progress', JSON.stringify(updated))
   }, [progress])
 
-  const recordMeditation = useCallback(() => {
-    const updated = {
-      ...progress,
-      meditationsCompleted: progress.meditationsCompleted + 1,
-      lastUpdateDate: Date.now()
-    }
-    setProgress(updated)
-    localStorage.setItem('appState_progress', JSON.stringify(updated))
-  }, [progress])
-
-  const recordPrayerSession = useCallback((minutes: number) => {
-    const updated = {
-      ...progress,
-      prayerSessionsCompleted: progress.prayerSessionsCompleted + 1,
-      lastUpdateDate: Date.now()
-    }
-    setProgress(updated)
-    localStorage.setItem('appState_progress', JSON.stringify(updated))
-  }, [progress])
-
-  const recordMediaListened = useCallback((minutes: number) => {
-    const updated = {
-      ...progress,
-      mediaListenedMinutes: progress.mediaListenedMinutes + minutes,
-      lastUpdateDate: Date.now()
-    }
-    setProgress(updated)
-    localStorage.setItem('appState_progress', JSON.stringify(updated))
-  }, [progress])
-
   const getProgressPercentage = useCallback(() => {
-    const weekCompletion = (progress.currentDay / 7) * 100
-    return Math.min(weekCompletion, 100)
-  }, [progress])
+    // Calculate percentage: (currentDay - 1) / 56 * 100
+    return ((progress.currentDay - 1) / 56) * 100
+  }, [progress.currentDay])
 
   return {
     ...progress,
     updateDay,
     updateWeek,
-    recordMeditation,
-    recordPrayerSession,
-    recordMediaListened,
     getProgressPercentage
   }
 }
 
-// HOOK: Recommendations Engine
-export const useRecommendations = () => {
-  const store = useAppStore()
-  const progress = useSpiritualProgress()
-  const media = useMediaLibrary()
+// HOOK: Recommendations
+export const useRecommendations = (): Recommendation[] => {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
-  const [isCombatMode, setIsCombatMode] = useState(false)
+  const { mediaLibrary } = useMediaLibrary()
 
   useEffect(() => {
-    const generated = generateRecommendations(
-      progress.currentWeek,
-      progress.currentDay,
-      store.statistics?.bible_readings || 0,
-      [],
-      isCombatMode,
-      media.mediaLibrary
-    )
-    setRecommendations(generated)
-  }, [progress.currentWeek, progress.currentDay, isCombatMode, store.statistics?.bible_readings, media.mediaLibrary])
+    const recs: Recommendation[] = []
+    const hour = new Date().getHours()
+    
+    if (hour >= 5 && hour < 9) {
+      const prayers = mediaLibrary.filter(m => m.type === 'prayer' || m.category === 'prières')
+      if (prayers.length > 0) {
+        recs.push({
+          id: 'morning_prayer',
+          title: 'Prière du Matin',
+          description: 'Commencez votre journée avec la prière',
+          mediaId: prayers[0].id,
+          reason: 'morning'
+        })
+      }
+    }
 
-  return {
-    recommendations,
-    isCombatMode,
-    setIsCombatMode
-  }
+    const favorites = mediaLibrary.filter(m => m.favorite).slice(0, 2)
+    favorites.forEach((fav, i) => {
+      recs.push({
+        id: `favorite_${i}`,
+        title: fav.title,
+        description: 'Un de vos favoris',
+        mediaId: fav.id,
+        reason: 'favorite'
+      })
+    })
+
+    setRecommendations(recs)
+  }, [mediaLibrary])
+
+  return recommendations
 }
 
 // HOOK: Prayer Timer
-export const usePrayerTimer = () => {
-  const [timeLeft, setTimeLeft] = useState(0)
+export const usePrayerTimer = (initialSeconds: number = 600) => {
+  const [totalSeconds, setTotalSeconds] = useState(initialSeconds)
+  const [timeRemaining, setTimeRemaining] = useState(initialSeconds)
   const [isRunning, setIsRunning] = useState(false)
-  const [totalTime, setTotalTime] = useState(0)
-
-  const startTimer = useCallback((minutes: number) => {
-    setTimeLeft(minutes * 60)
-    setTotalTime(minutes * 60)
-    setIsRunning(true)
-  }, [])
-
-  const pauseTimer = useCallback(() => {
-    setIsRunning(false)
-  }, [])
-
-  const resumeTimer = useCallback(() => {
-    setIsRunning(true)
-  }, [])
-
-  const stopTimer = useCallback(() => {
-    setIsRunning(false)
-    setTimeLeft(0)
-    setTotalTime(0)
-  }, [])
 
   useEffect(() => {
-    if (!isRunning || timeLeft <= 0) return
+    let interval: NodeJS.Timeout
 
-    const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          setIsRunning(false)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
+    if (isRunning && timeRemaining > 0) {
+      interval = setInterval(() => {
+        setTimeRemaining(prev => prev - 1)
+      }, 1000)
+    } else if (timeRemaining === 0 && isRunning) {
+      setIsRunning(false)
+    }
 
     return () => clearInterval(interval)
-  }, [isRunning, timeLeft])
+  }, [isRunning, timeRemaining])
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
+  const startTimer = useCallback((seconds?: number) => {
+    if (seconds) {
+      setTotalSeconds(seconds)
+      setTimeRemaining(seconds)
+    }
+    setIsRunning(true)
+  }, [])
 
-  const getPercentage = () => {
-    if (totalTime === 0) return 0
-    return (timeLeft / totalTime) * 100
-  }
+  const pauseTimer = useCallback(() => setIsRunning(false), [])
+  const resetTimer = useCallback(() => {
+    setIsRunning(false)
+    setTimeRemaining(totalSeconds)
+  }, [totalSeconds])
+
+  const formattedTime = `${Math.floor(timeRemaining / 60)}:${(timeRemaining % 60).toString().padStart(2, '0')}`
+  const percentage = (timeRemaining / totalSeconds) * 100
 
   return {
-    timeLeft,
+    timeRemaining,
     isRunning,
-    totalTime,
-    formattedTime: formatTime(timeLeft),
-    percentage: getPercentage(),
     startTimer,
     pauseTimer,
-    resumeTimer,
-    stopTimer
+    resetTimer,
+    formattedTime,
+    percentage
   }
 }
 
-// HOOK: Verse Text-to-Speech
+// HOOK: Verse Audio (Text-to-Speech)
 export const useVerseAudio = () => {
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [currentVerse, setCurrentVerse] = useState('')
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      const updateVoices = () => {
+        setVoices(window.speechSynthesis.getVoices())
+      }
+      updateVoices()
+      window.speechSynthesis.onvoiceschanged = updateVoices
+    }
+  }, [])
 
   const speakVerse = useCallback((verseText: string) => {
     if (!window.speechSynthesis) {
       console.warn('Speech Synthesis not supported')
+      return
+    }
+
+    if (isSpeaking && currentVerse === verseText) {
+      // Toggle off
+      window.speechSynthesis.cancel()
+      setIsSpeaking(false)
+      setCurrentVerse('')
       return
     }
 
@@ -319,7 +323,12 @@ export const useVerseAudio = () => {
     utterance.lang = 'fr-FR'
     utterance.rate = 0.9
     utterance.pitch = 1
-    utterance.volume = 0.8
+
+    // Find French voice if available
+    const frenchVoice = voices.find(v => v.lang.includes('fr-FR')) || voices[0]
+    if (frenchVoice) {
+      utterance.voice = frenchVoice
+    }
 
     utterance.onstart = () => {
       setIsSpeaking(true)
@@ -328,41 +337,30 @@ export const useVerseAudio = () => {
 
     utterance.onend = () => {
       setIsSpeaking(false)
+      setCurrentVerse('')
     }
 
     window.speechSynthesis.speak(utterance)
-  }, [])
-
-  const stopSpeaking = useCallback(() => {
-    window.speechSynthesis.cancel()
-    setIsSpeaking(false)
-  }, [])
+  }, [isSpeaking, currentVerse, voices])
 
   return {
     isSpeaking,
     currentVerse,
-    speakVerse,
-    stopSpeaking
+    speakVerse
   }
 }
 
-// HOOK: Clipboard Copy
+// HOOK: Clipboard
 export const useCopy = () => {
   const [copied, setCopied] = useState(false)
 
-  const copyToClipboard = useCallback((text: string) => {
-    if (!navigator.clipboard) {
-      const elem = document.createElement('textarea')
-      elem.value = text
-      document.body.appendChild(elem)
-      elem.select()
-      document.execCommand('copy')
-      document.body.removeChild(elem)
-    } else {
-      navigator.clipboard.writeText(text).then(() => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      })
+  const copyToClipboard = useCallback(async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error('Copy failed:', error)
     }
   }, [])
 
