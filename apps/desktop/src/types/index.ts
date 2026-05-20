@@ -86,18 +86,42 @@ export interface SalomonResponse {
 }
 
 // MULTIMEDIA TYPES
+export type MediaType = 'song' | 'instrumental' | 'podcast' | 'teaching' | 'prayer' | 'audiobook' | 'hymn'
+export type MediaCategory = 'chants' | 'instrumentaux' | 'podcasts' | 'enseignements' | 'prières' | 'livres_audio' | 'hymnes' | 'favoris'
+export type MediaSource = 'imported' | 'external_url' | 'youtube'
+export type MediaSubCategory = 'repentance' | 'combat_spirituel' | 'sanctification' | 'discipline' | 'foi' | 'delivrance' | 'saint_esprit'
+
+export interface MediaPlaybackProgress {
+  currentTime: number // in seconds
+  lastPlayedAt: number
+  chapters?: {
+    chapterId: string
+    progress: number
+    title: string
+  }[]
+}
+
 export interface MediaItem {
   id: string
   title: string
-  type: 'song' | 'instrumental' | 'podcast' | 'teaching' | 'prayer'
-  category: 'worship' | 'prayer' | 'meditation' | 'teaching' | 'pure-sound'
-  url: string
+  type: MediaType
+  category: MediaCategory
+  subCategory?: MediaSubCategory
+  source: MediaSource
+  url: string // local path or external URL
   thumbnail?: string
   duration: number
   favorite: boolean
   createdAt: number
   artist?: string
+  author?: string
   views?: number
+  description?: string
+  tags?: string[]
+  playbackProgress?: MediaPlaybackProgress
+  fileSize?: number // in bytes
+  mimeType?: string
+  isAvailable?: boolean // for checking if imported file exists
 }
 
 // RECOMMENDATIONS

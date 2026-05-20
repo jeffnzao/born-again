@@ -1,34 +1,72 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useAppStore } from '../store/appStore'
-import { MediaItem, Recommendation, SpiritualProgress } from '../types/index'
-import { mediaLibrary, generateRecommendations } from '../data/mediaLibrary'
+import { MediaItem, Recommendation, SpiritualProgress, MediaCategory } from '../types/index'
+import { mediaLibrary, generateRecommendations, filterMediaByCategory, getFavorites } from '../data/mediaLibrary'
 
-// HOOK: Media Library
+// HOOK: Media Library - Real File Management
 export const useMediaLibrary = () => {
   const store = useAppStore()
   const [currentMedia, setCurrentMedia] = useState<MediaItem | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(0.8)
   const [currentTime, setCurrentTime] = useState(0)
+  const [playbackSpeed, setPlaybackSpeed] = useState(1)
+  const [loadingState, setLoadingState] = useState<'idle' | 'loading' | 'error'>('idle')
+
+  const getLibrary = useCallback((): MediaItem[] => {
+    const saved = localStorage.getItem('appState_media')
+    return saved ? JSON.parse(saved) : mediaLibrary
+  }, [])
 
   const addToLibrary = useCallback((media: MediaItem) => {
-    const exists = store.media_library?.some(m => m.id === media.id)
+    const library = getLibrary()
+    const exists = library.some(m => m.id === media.id)
     if (!exists) {
-      const updated = [...(store.media_library || []), media]
+      const updated = [...library, media]
       localStorage.setItem('appState_media', JSON.stringify(updated))
     }
-  }, [store])
+  }, [getLibrary])
+
+  const removeFromLibrary = useCallback((mediaId: string) => {
+    const library = getLibrary()
+    const updated = library.filter(m => m.id !== mediaId)
+    localStorage.setItem('appState_media', JSON.stringify(updated))
+    if (currentMedia?.id === mediaId) {
+      setCurrentMedia(null)
+      setIsPlaying(false)
+    }
+  }, [getLibrary, currentMedia])
 
   const toggleFavorite = useCallback((mediaId: string) => {
-    const updated = (store.media_library || []).map(m =>
+    const library = getLibrary()
+    const updated = library.map(m =>
       m.id === mediaId ? { ...m, favorite: !m.favorite } : m
     )
     localStorage.setItem('appState_media', JSON.stringify(updated))
-  }, [store])
+  }, [getLibrary])
+
+  const updatePlaybackProgress = useCallback((mediaId: string, currentTime: number) => {
+    const library = getLibrary()
+    const updated = library.map(m => {
+      if (m.id === mediaId) {
+        return {
+          ...m,
+          playbackProgress: {
+            currentTime,
+            lastPlayedAt: Date.now(),
+            chapters: m.playbackProgress?.chapters
+          }
+        }
+      }
+      return m
+    })
+    localStorage.setItem('appState_media', JSON.stringify(updated))
+  }, [getLibrary])
 
   const playMedia = useCallback((media: MediaItem) => {
     setCurrentMedia(media)
     setIsPlaying(true)
+    setLoadingState('loading')
   }, [])
 
   const pauseMedia = useCallback(() => {
@@ -36,8 +74,10 @@ export const useMediaLibrary = () => {
   }, [])
 
   const resumeMedia = useCallback(() => {
-    setIsPlaying(true)
-  }, [])
+    if (currentMedia) {
+      setIsPlaying(true)
+    }
+  }, [currentMedia])
 
   const stopMedia = useCallback(() => {
     setCurrentMedia(null)
@@ -45,20 +85,38 @@ export const useMediaLibrary = () => {
     setCurrentTime(0)
   }, [])
 
+  const getMediaByCategory = useCallback((category: MediaCategory) => {
+    const library = getLibrary()
+    return filterMediaByCategory(library, category)
+  }, [getLibrary])
+
+  const getFavoritesMedia = useCallback(() => {
+    const library = getLibrary()
+    return getFavorites(library)
+  }, [getLibrary])
+
   return {
     currentMedia,
     isPlaying,
     volume,
     currentTime,
-    mediaLibrary: store.media_library || mediaLibrary,
+    playbackSpeed,
+    loadingState,
+    mediaLibrary: getLibrary(),
     playMedia,
     pauseMedia,
     resumeMedia,
     stopMedia,
     toggleFavorite,
     addToLibrary,
+    removeFromLibrary,
+    updatePlaybackProgress,
+    getMediaByCategory,
+    getFavoritesMedia,
     setVolume,
-    setCurrentTime
+    setCurrentTime,
+    setPlaybackSpeed,
+    setLoadingState
   }
 }
 
@@ -155,20 +213,21 @@ export const useSpiritualProgress = () => {
 export const useRecommendations = () => {
   const store = useAppStore()
   const progress = useSpiritualProgress()
+  const media = useMediaLibrary()
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [isCombatMode, setIsCombatMode] = useState(false)
 
-  // Generate recommendations when context changes
   useEffect(() => {
     const generated = generateRecommendations(
       progress.currentWeek,
       progress.currentDay,
       store.statistics?.bible_readings || 0,
       [],
-      isCombatMode
+      isCombatMode,
+      media.mediaLibrary
     )
     setRecommendations(generated)
-  }, [progress.currentWeek, progress.currentDay, isCombatMode, store.statistics?.bible_readings])
+  }, [progress.currentWeek, progress.currentDay, isCombatMode, store.statistics?.bible_readings, media.mediaLibrary])
 
   return {
     recommendations,
@@ -203,7 +262,6 @@ export const usePrayerTimer = () => {
     setTotalTime(0)
   }, [])
 
-  // Timer effect
   useEffect(() => {
     if (!isRunning || timeLeft <= 0) return
 
@@ -255,11 +313,10 @@ export const useVerseAudio = () => {
       return
     }
 
-    // Cancel any ongoing speech
     window.speechSynthesis.cancel()
 
     const utterance = new SpeechSynthesisUtterance(verseText)
-    utterance.lang = 'fr-FR' // French language
+    utterance.lang = 'fr-FR'
     utterance.rate = 0.9
     utterance.pitch = 1
     utterance.volume = 0.8
@@ -295,7 +352,6 @@ export const useCopy = () => {
 
   const copyToClipboard = useCallback((text: string) => {
     if (!navigator.clipboard) {
-      // Fallback for older browsers
       const elem = document.createElement('textarea')
       elem.value = text
       document.body.appendChild(elem)

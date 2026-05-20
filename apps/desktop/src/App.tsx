@@ -11,6 +11,7 @@ import { useMediaLibrary, useSpiritualProgress, useRecommendations, usePrayerTim
 import { biblicalVerses, encouragements, dailyVerses, weekProgrammes, salomonResponses } from './data/spiritualData'
 import { mediaLibrary } from './data/mediaLibrary'
 import { getMoodEmoji, getMoodColor, getRandomEncouragement, formatDate } from './utils/helpers'
+import { MediaLibraryPage } from './components/MediaLibraryPage'
 
 type PageType = 'home' | 'combat' | 'bible' | 'journal' | 'dashboard' | 'salomon' | 'rappels' | 'multimedia' | 'parcours'
 
@@ -356,144 +357,21 @@ const App: React.FC = () => {
 
   // PAGE: MULTIMEDIA - BIBLIOTHÈQUE SPIRITUELLE
   const MultimediaPage = () => (
-    <div className="max-w-5xl mx-auto">
-      <h1 className="text-4xl font-bold mb-8 text-sacred-400">Bibliothèque Spirituelle</h1>
-
-      {/* Recommendations Section */}
-      {recommendations.recommendations.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-sacred-300">✨ Recommandé pour toi</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {recommendations.recommendations.slice(0, 3).map((rec) => (
-              <div key={rec.id} className="bg-gradient-to-r from-sacred-700 to-sacred-600 rounded-lg p-4 border border-sacred-400">
-                <p className="text-sm text-sacred-100 mb-2">{rec.reason}</p>
-                <p className="font-semibold text-white">{rec.title}</p>
-                <div className="flex items-center gap-2 mt-3">
-                  <span className={`px-2 py-1 rounded text-xs font-bold ${
-                    rec.priority === 'high' ? 'bg-red-600' : rec.priority === 'medium' ? 'bg-yellow-600' : 'bg-blue-600'
-                  }`}>
-                    {rec.priority.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Current Media Player */}
-      {media.currentMedia && (
-        <div className="mb-8 bg-slate-800 rounded-lg p-6 border border-sacred-500 border-opacity-50">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-bold text-sacred-300">{media.currentMedia.title}</h3>
-              {media.currentMedia.artist && <p className="text-sm text-gray-400">{media.currentMedia.artist}</p>}
-            </div>
-            <button
-              onClick={media.stopMedia}
-              className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-            >
-              <X size={20} />
-            </button>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="mb-4">
-            <div className="bg-slate-900 rounded-full h-2 overflow-hidden mb-2">
-              <div
-                className="bg-sacred-500 h-full transition-all duration-500"
-                style={{ width: `${(media.currentTime / media.currentMedia.duration) * 100}%` }}
-              ></div>
-            </div>
-            <div className="flex justify-between text-xs text-gray-400">
-              <span>{Math.floor(media.currentTime / 60)}:{String(media.currentTime % 60).padStart(2, '0')}</span>
-              <span>{Math.floor(media.currentMedia.duration / 60)}:{String(media.currentMedia.duration % 60).padStart(2, '0')}</span>
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center justify-center gap-4">
-            <button
-              onClick={media.pauseMedia}
-              className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-            >
-              <Pause size={20} />
-            </button>
-            <button
-              onClick={media.resumeMedia}
-              className="p-3 bg-sacred-600 hover:bg-sacred-700 rounded-lg transition-colors"
-            >
-              <Play size={20} />
-            </button>
-            <div className="flex items-center gap-2 ml-auto">
-              <Volume2 size={16} className="text-gray-400" />
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={media.volume}
-                onChange={(e) => media.setVolume(parseFloat(e.target.value))}
-                className="w-24"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Category Tabs */}
-      <div className="mb-6 flex gap-2 flex-wrap">
-        {(['chants', 'instrumentaux', 'podcasts', 'enseignements', 'favoris'] as const).map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedMediaCategory(cat)}
-            className={`px-4 py-2 rounded-lg transition-colors capitalize ${
-              selectedMediaCategory === cat
-                ? 'bg-sacred-600 text-white'
-                : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-            }`}
-          >
-            {cat === 'chants' && '🎵'} {cat === 'instrumentaux' && '🎹'} {cat === 'podcasts' && '🎙️'} {cat === 'enseignements' && '📚'} {cat === 'favoris' && '❤️'} {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Media Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {mediaLibrary.map((item) => (
-          <div key={item.id} className="bg-slate-800 rounded-lg overflow-hidden border border-slate-700 hover:border-sacred-500 transition-colors">
-            {item.thumbnail && (
-              <img src={item.thumbnail} alt={item.title} className="w-full h-32 object-cover" />
-            )}
-            <div className="p-4">
-              <h3 className="font-bold text-white mb-2 line-clamp-2">{item.title}</h3>
-              {item.artist && <p className="text-xs text-gray-400 mb-2">{item.artist}</p>}
-              <div className="flex items-center justify-between">
-                <span className="text-xs bg-sacred-700 text-sacred-200 px-2 py-1 rounded capitalize">{item.category}</span>
-                <span className="text-xs text-gray-500">{Math.floor(item.duration / 60)}:{String(item.duration % 60).padStart(2, '0')}</span>
-              </div>
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => media.playMedia(item)}
-                  className="flex-1 bg-sacred-600 hover:bg-sacred-700 px-3 py-2 rounded text-sm transition-colors flex items-center justify-center gap-1"
-                >
-                  {media.isPlaying && media.currentMedia?.id === item.id ? <Pause size={14} /> : <Play size={14} />}
-                  {media.isPlaying && media.currentMedia?.id === item.id ? 'En cours' : 'Écouter'}
-                </button>
-                <button
-                  onClick={() => media.toggleFavorite(item.id)}
-                  className={`px-3 py-2 rounded transition-colors ${
-                    item.favorite ? 'bg-red-600' : 'bg-slate-700 hover:bg-slate-600'
-                  }`}
-                >
-                  <Heart size={16} fill={item.favorite ? 'currentColor' : 'none'} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <MediaLibraryPage
+      media={media}
+      onPlayNext={() => {
+        const currentIndex = media.mediaLibrary.findIndex(m => m.id === media.currentMedia?.id)
+        if (currentIndex < media.mediaLibrary.length - 1) {
+          media.playMedia(media.mediaLibrary[currentIndex + 1])
+        }
+      }}
+      onPlayPrevious={() => {
+        const currentIndex = media.mediaLibrary.findIndex(m => m.id === media.currentMedia?.id)
+        if (currentIndex > 0) {
+          media.playMedia(media.mediaLibrary[currentIndex - 1])
+        }
+      }}
+    />
   )
 
   // PAGE: PARCOURS - PROGRESSION SPIRITUELLE
