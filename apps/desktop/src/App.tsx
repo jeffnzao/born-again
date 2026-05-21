@@ -3,15 +3,19 @@ import {
   Home, Flame, BookOpen, PenTool, BarChart3, Sparkles, Bell,
   Menu, X, Send, Heart, Clock, BookMarked, TrendingUp, MessageCircle, Settings,
   Trash2, Edit2, Plus, ChevronDown, ChevronUp, Zap, Music, Play, Pause, Volume2,
-  Copy, CheckCircle, AlertCircle, MapPin, Calendar
+  Copy, CheckCircle, AlertCircle, MapPin, Calendar, Download, FolderOpen
 } from 'lucide-react'
 import { useAppStore } from './store/appStore'
 import { useJournal, usePurity, useReminders, useChat, useStats } from './hooks/useSpiritual'
 import { useMediaLibrary, useSpiritualProgress, useRecommendations, usePrayerTimer, useVerseAudio, useCopy } from './hooks/useMultimedia'
+import { useAudioEngine } from './hooks/useAudioEngine'
+import { useGlobalPlayer } from './store/globalPlayer'
 import { biblicalVerses, encouragements, dailyVerses, weekProgrammes, salomonResponses } from './data/spiritualData'
-import { mediaLibrary } from './data/mediaLibrary'
 import { getMoodEmoji, getMoodColor, getRandomEncouragement, formatDate } from './utils/helpers'
-import { MediaLibraryPage } from './components/MediaLibraryPage'
+import { GlobalMusicPlayer } from './components/GlobalMusicPlayer'
+import { MediaImporter } from './components/MediaImporter'
+import { getImportedMedia, removeImportedMedia, downloadPDF } from './utils/mediaImport'
+import { MediaItem, MediaCategory } from './types/index'
 
 type PageType = 'home' | 'combat' | 'bible' | 'journal' | 'dashboard' | 'salomon' | 'rappels' | 'multimedia' | 'parcours'
 
@@ -36,8 +40,12 @@ const App: React.FC = () => {
   const prayerTimer = usePrayerTimer()
   const verseAudio = useVerseAudio()
   const { copied, copyToClipboard } = useCopy()
-  const [selectedMediaCategory, setSelectedMediaCategory] = useState<'chants' | 'instrumentaux' | 'podcasts' | 'enseignements' | 'favoris'>('chants')
+  const audio = useAudioEngine()
+  const player = useGlobalPlayer()
+  const [selectedMediaCategory, setSelectedMediaCategory] = useState<MediaCategory>('chants')
   const [combatModeActive, setCombatModeActive] = useState(false)
+  const [importedMedia, setImportedMedia] = useState<MediaItem[]>(() => getImportedMedia())
+  const [mediaToDisplay, setMediaToDisplay] = useState<MediaItem[]>([])
 
   const navItems = [
     { id: 'home', label: 'Accueil', icon: Home },
@@ -166,10 +174,13 @@ const App: React.FC = () => {
             "Seigneur Jésus, je reconnais ma faiblesse. Remplissez-moi de votre Saint-Esprit. Par votre force, je vaincs le péché aujourd'hui. Amen."
           </p>
           <button 
-            onClick={() => media.playMedia(mediaLibrary[0])}
+            onClick={() => {
+              // Open worship music - for now, open media library
+              setCurrentPage('multimedia')
+            }}
             className="w-full bg-sacred-600 hover:bg-sacred-700 px-4 py-2 rounded-lg transition-all"
           >
-            {media.isPlaying && media.currentMedia?.id === mediaLibrary[0].id ? '⏸️ Arrêter musique' : '🎵 Lancer la musique worship'}
+            {player.isPlaying ? '⏸️ Arrêter musique' : '🎵 Lancer la musique worship'}
           </button>
         </div>
       </div>
@@ -356,23 +367,140 @@ const App: React.FC = () => {
   )
 
   // PAGE: MULTIMEDIA - BIBLIOTHÈQUE SPIRITUELLE
-  const MultimediaPage = () => (
-    <MediaLibraryPage
-      media={media}
-      onPlayNext={() => {
-        const currentIndex = media.mediaLibrary.findIndex(m => m.id === media.currentMedia?.id)
-        if (currentIndex < media.mediaLibrary.length - 1) {
-          media.playMedia(media.mediaLibrary[currentIndex + 1])
-        }
-      }}
-      onPlayPrevious={() => {
-        const currentIndex = media.mediaLibrary.findIndex(m => m.id === media.currentMedia?.id)
-        if (currentIndex > 0) {
-          media.playMedia(media.mediaLibrary[currentIndex - 1])
-        }
-      }}
-    />
-  )
+  const MultimediaPage = () => {
+    // Filter media by category
+    useEffect(() => {
+      const filtered = importedMedia.filter(m => 
+        selectedMediaCategory === 'favoris' ? m.favorite : m.category === selectedMediaCategory
+      )
+      setMediaToDisplay(filtered)
+    }, [selectedMediaCategory, importedMedia])
+
+    const handlePlayMedia = (media: MediaItem) => {
+      player.setCurrentMedia(media)
+      player.setPlayList(mediaToDisplay)
+      player.setIsPlaying(true)
+    }
+
+    const handleRemoveMedia = (mediaId: string) => {
+      removeImportedMedia(mediaId)
+      setImportedMedia(getImportedMedia())
+    }
+
+    const handleMediaImported = (media: MediaItem[]) => {
+      setImportedMedia(getImportedMedia())
+    }
+
+    const categories: { id: MediaCategory; label: string; emoji: string }[] = [
+      { id: 'chants', label: 'Chants', emoji: '🎵' },
+      { id: 'instrumentaux', label: 'Instrumentaux', emoji: '🎹' },
+      { id: 'podcasts', label: 'Podcasts', emoji: '🎙️' },
+      { id: 'enseignements', label: 'Enseignements', emoji: '📚' },
+      { id: 'prières', label: 'Prières', emoji: '🙏' },
+      { id: 'livres_audio', label: 'Livres audio', emoji: '📖' },
+      { id: 'hymnes', label: 'Hymnes', emoji: '⛪' },
+      { id: 'favoris', label: 'Favoris', emoji: '❤️' },
+    ]
+
+    return (
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold mb-8 text-sacred-400">Bibliothèque Spirituelle</h1>
+
+        {/* Import Section */}
+        <div className="mb-8 bg-slate-800 rounded-lg p-6 border border-slate-700">
+          <h2 className="text-xl font-bold mb-4 text-sacred-300">📥 Importer des médias</h2>
+          <MediaImporter onMediaImported={handleMediaImported} />
+        </div>
+
+        {/* Category Tabs */}
+        <div className="mb-6 flex gap-2 flex-wrap">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedMediaCategory(cat.id)}
+              className={`px-4 py-2 rounded-lg transition-colors font-semibold ${
+                selectedMediaCategory === cat.id
+                  ? 'bg-sacred-600 text-white'
+                  : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+              }`}
+            >
+              {cat.emoji} {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Media Grid */}
+        {mediaToDisplay.length === 0 ? (
+          <div className="text-center py-12 bg-slate-800 rounded-lg border border-slate-700 border-dashed">
+            <FolderOpen size={48} className="mx-auto text-gray-500 mb-4" />
+            <p className="text-gray-400 text-lg mb-2">Aucun média disponible</p>
+            <p className="text-gray-500 text-sm">Importez vos médias pour commencer</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {mediaToDisplay.map((media) => (
+              <div key={media.id} className="bg-slate-800 rounded-lg overflow-hidden border border-slate-700 hover:border-sacred-500 transition-colors">
+                {media.thumbnail && (
+                  <img src={media.thumbnail} alt={media.title} className="w-full h-40 object-cover" />
+                )}
+                <div className="p-4">
+                  <h3 className="font-bold text-white mb-2 line-clamp-2">{media.title}</h3>
+                  {media.artist && <p className="text-xs text-gray-400 mb-2">{media.artist}</p>}
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs bg-sacred-700 text-sacred-200 px-2 py-1 rounded capitalize">
+                      {media.category.replace('_', ' ')}
+                    </span>
+                    {media.duration > 0 && (
+                      <span className="text-xs text-gray-500">
+                        {Math.floor(media.duration / 60)}:{String(Math.floor(media.duration % 60)).padStart(2, '0')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handlePlayMedia(media)}
+                      className="flex-1 bg-sacred-600 hover:bg-sacred-700 px-3 py-2 rounded text-sm transition-colors flex items-center justify-center gap-1"
+                    >
+                      {player.currentMedia?.id === media.id && player.isPlaying ? (
+                        <>
+                          <Pause size={14} /> Pause
+                        </>
+                      ) : (
+                        <>
+                          <Play size={14} /> Play
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const updated = importedMedia.map(m => 
+                          m.id === media.id ? { ...m, favorite: !m.favorite } : m
+                        )
+                        setImportedMedia(updated)
+                      }}
+                      className={`px-3 py-2 rounded transition-colors ${
+                        media.favorite ? 'bg-red-600 text-white' : 'bg-slate-700 text-gray-300'
+                      }`}
+                    >
+                      <Heart size={16} fill={media.favorite ? 'currentColor' : 'none'} />
+                    </button>
+                    <button
+                      onClick={() => handleRemoveMedia(media.id)}
+                      className="px-3 py-2 bg-slate-700 hover:bg-red-700 rounded transition-colors text-gray-300"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   // PAGE: PARCOURS - PROGRESSION SPIRITUELLE
   const ParcourPage = () => (
@@ -684,8 +812,11 @@ const App: React.FC = () => {
         </div>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-8">{renderPage()}</div>
+        <div className="flex-1 overflow-auto p-8 pb-32">{renderPage()}</div>
       </div>
+
+      {/* Global Music Player */}
+      <GlobalMusicPlayer />
     </div>
   )
 }
