@@ -141,6 +141,17 @@ export const useMediaLibrary = () => {
 
 // HOOK: Spiritual Progress Tracking
 export const useSpiritualProgress = () => {
+  const getDefaultProgress = (): SpiritualProgress => ({
+    currentWeek: 1,
+    currentDay: 1,
+    daysCompleted: 0,
+    weekStartDate: Date.now(),
+    lastUpdateDate: Date.now(),
+    meditationsCompleted: 0,
+    prayerSessionsCompleted: 0,
+    mediaListenedMinutes: 0
+  })
+
   const [progress, setProgress] = useState<SpiritualProgress>(() => {
     const saved = localStorage.getItem('appState_progress')
     if (saved) {
@@ -151,17 +162,6 @@ export const useSpiritualProgress = () => {
       }
     }
     return getDefaultProgress()
-  })
-
-  const getDefaultProgress = (): SpiritualProgress => ({
-    currentWeek: 1,
-    currentDay: 1,
-    daysCompleted: 0,
-    weekStartDate: Date.now(),
-    lastUpdateDate: Date.now(),
-    meditationsCompleted: 0,
-    prayerSessionsCompleted: 0,
-    mediaListenedMinutes: 0
   })
 
   const updateDay = useCallback((newDay: number) => {
