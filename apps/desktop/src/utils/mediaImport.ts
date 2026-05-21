@@ -188,3 +188,93 @@ export const generateDefaultMedia = (): MediaItem[] => {
     },
   ]
 }
+
+/**
+ * Load default media files from public/default-media/
+ */
+export const loadDefaultMedia = async (): Promise<void> => {
+  const INITIALIZED_KEY = 'nc_default_media_initialized'
+  
+  // Skip if already initialized
+  if (localStorage.getItem(INITIALIZED_KEY)) {
+    return
+  }
+
+  try {
+    const defaultMediaFiles: Record<string, Array<{ file: string; title: string; artist?: string }>> = {
+      chants: [
+        { file: '/default-media/chants/au-nom-de-jesus.wav', title: 'Au Nom de Jésus' },
+        { file: '/default-media/chants/victoire-en-christ.wav', title: 'Victoire en Christ' },
+      ],
+      instrumentaux: [
+        { file: '/default-media/instrumentaux/musique-priere.wav', title: 'Musique de Prière' },
+      ],
+      prières: [
+        { file: '/default-media/prieres/priere-repentance.wav', title: 'Prière de Repentance' },
+      ],
+      podcasts: [
+        { file: '/default-media/podcasts/reflexion-spirituelle.wav', title: 'Réflexion Spirituelle' },
+      ],
+      hymnes: [
+        { file: '/default-media/hymnes/grand-dieu.wav', title: 'Grand Dieu nous te Louons' },
+      ],
+      livres_audio: [
+        { file: '/default-media/livres-audio/vie-normale-chretien.wav', title: 'La Vie Normale du Chrétien' },
+      ],
+      enseignements: [
+        { file: '/default-media/enseignements/purete-spirituelle.mp4', title: 'La Pureté Spirituelle' },
+      ],
+    }
+
+    const mediaItems: MediaItem[] = []
+    
+    for (const [category, files] of Object.entries(defaultMediaFiles)) {
+      for (const fileInfo of files) {
+        try {
+          // Try to fetch the file to check if it exists
+          const response = await fetch(fileInfo.file)
+          if (response.ok) {
+            const blob = await response.blob()
+            
+            // Create a MediaItem for each file
+            const mediaItem: MediaItem = {
+              id: `default_${Date.now()}_${Math.random()}`,
+              title: fileInfo.title,
+              type: category.includes('chants') ? 'song' : 
+                     category.includes('instrumental') ? 'instrumental' : 
+                     category.includes('prière') ? 'prayer' : 
+                     category.includes('podcast') ? 'podcast' : 
+                     category.includes('hymne') ? 'hymn' : 
+                     category.includes('livre') ? 'audiobook' : 'teaching',
+              category: category as MediaCategory,
+              source: 'default',
+              url: fileInfo.file,
+              duration: 0,
+              favorite: false,
+              createdAt: Date.now(),
+              artist: fileInfo.artist || '',
+              description: `Default media: ${fileInfo.title}`,
+              isAvailable: true,
+            }
+            
+            mediaItems.push(mediaItem)
+          }
+        } catch (error) {
+          console.log(`Could not load default media: ${fileInfo.file}`)
+        }
+      }
+    }
+
+    // If we found any media items, save them to localStorage
+    if (mediaItems.length > 0) {
+      const existing = localStorage.getItem(IMPORTED_MEDIA_KEY)
+      const allMedia = existing ? [...JSON.parse(existing), ...mediaItems] : mediaItems
+      localStorage.setItem(IMPORTED_MEDIA_KEY, JSON.stringify(allMedia))
+    }
+
+    // Mark as initialized
+    localStorage.setItem(INITIALIZED_KEY, 'true')
+  } catch (error) {
+    console.error('Error loading default media:', error)
+  }
+}

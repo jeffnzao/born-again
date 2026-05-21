@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { MediaItem, MediaCategory } from '../types/index'
-import { getImportedMedia, removeImportedMedia } from '../utils/mediaImport'
+import { getImportedMedia, removeImportedMedia, loadDefaultMedia } from '../utils/mediaImport'
 import { useGlobalPlayer, GlobalPlayerState } from '../store/globalPlayer'
 import { MediaImporter } from './MediaImporter'
 import MediaItemCard from './MediaItemCard'
@@ -27,8 +27,12 @@ export const MultimediaPageComponent: React.FC<MultimediaPageProps> = ({ player 
 
   // Load media on mount
   useEffect(() => {
-    const media = getImportedMedia()
-    setImportedMedia(media)
+    const initializeMedia = async () => {
+      await loadDefaultMedia()
+      const media = getImportedMedia()
+      setImportedMedia(media)
+    }
+    initializeMedia()
   }, [])
 
   // Filter media when category changes
